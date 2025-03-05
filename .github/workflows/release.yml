@@ -11,8 +11,10 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: '16'
-      - run: npm install
+          node-version: '22'
+      - run: npm install 
+      - run: npm install -g @vscode/vsce
+      - run: vsce package
       - name: Upload vsix to release
         uses: AButler/upload-release-assets@v1.0
         with:

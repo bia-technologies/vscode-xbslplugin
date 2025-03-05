@@ -3,14 +3,14 @@
   "displayName": "Language 1C Element (xbsl)",
   "description": "Syntax highlighting for 1C:Enterprise Element",
   "version": "0.1.0",
-  "publisher": "BIA Technologies",
+  "publisher": "bia-tech",
   "engines": {
     "vscode": "^1.97.0"
   },
   "categories": [
     "Programming Languages"
   ],
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "contributes": {
     "languages": [{
       "id": "xbsl",
@@ -23,5 +23,12 @@
       "scopeName": "source.xbsl",
       "path": "./syntaxes/xbsl.tmLanguage.json"
     }]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bia-technologies/vscode-xbslplugin.git"
+  },
+  "devDependencies": {
+    "vsce": "^2.7.0"
   }
 }
