@@ -1,0 +1,27 @@
+{
+  "name": "language-1c-element-xbsl",
+  "displayName": "Language 1C Element (xbsl)",
+  "description": "Syntax highlighting for 1C:Enterprise Element",
+  "version": "0.1.0",
+  "publisher": "BIA Technologies",
+  "engines": {
+    "vscode": "^1.97.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "license": "MIT",
+  "contributes": {
+    "languages": [{
+      "id": "xbsl",
+      "aliases": ["XBSL", "SBSL", "1C Element"],
+      "extensions": [".xbsl", ".sbsl"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "xbsl",
+      "scopeName": "source.xbsl",
+      "path": "./syntaxes/xbsl.tmLanguage.json"
+    }]
+  }
+}
