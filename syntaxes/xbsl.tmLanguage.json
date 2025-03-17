@@ -3,9 +3,9 @@
 	"name": "xbsl",
 	"patterns": [
 		{ "include": "#comments" },
+		{ "include": "#query-full" },
 		{ "include": "#literals" },
 		{ "include": "#operators" },
-		
 		{
 			"name": "keyword.control.import.xbsl",
 			"match": "^\\s*(импорт|import)\\b([^\\/$]+)",
@@ -15,24 +15,25 @@
 			}
 		},
 		{
-			"name": "keyword.control.xbsl",
-			"begin": "(?i:^\\s*(метод|method)\\s+([\\wа-яё]+\\s*(?:\\()))",
+			"name": "keyword.operator.expression.xbsl",
+			"match": "\\s*(метод|method)\\s+(?i:([\\wа-яё]+)\\s*(?:\\()(.*)(?:\\))(?:\\s*:(.*[^\\/$]))?)",
+			"captures": {
+				"1": { "name": "keyword.control.xbsl" },
+				"2": { "name": "entity.name.function.xbsl" },
+				"3": { "patterns": [ { "include": "#method-params" } ] },
+				"4": { "name": "entity.name.type.xbsl" }
+			}
+		},
+		{
+			"name": "keyword.operator.expression.xbsl",
+			"begin": "(?i:\\s*(метод|method)\\s+([\\wа-яё]+\\s*(?:\\()))",
 			"beginCaptures": {
 				"1": { "name": "keyword.control.xbsl" },
 				"2": { "name": "entity.name.function.xbsl" }
 			},
-			"end": "(?:\\))(?:\\s*(:[^=]+))*?",
-			"endCaptures": { "1": { "patterns": [ { "include": "#value-type" } ] } },
-			"patterns": [
-				{
-					"name": "",
-					"match": "([\\wа-яё]+)(?:\\s*(?:\\:)\\s*([\\wа-яё\\.\\|<>?]+))*\\s*?",
-					"captures": {
-						"1": { "name": "variable.parameter.xbsl" },
-						"2": { "patterns": [ { "include": "#value-type" } ] }
-					}
-				}
-			]
+			"end": "(?<=\\))(?:\\s*:(.*[^\\/$]))*",
+			"endCaptures": { "1": { "name": "entity.name.type.xbsl" } },
+			"patterns": [ { "include": "#method-params" } ]
 		},
 		{
 			"name": "storage.type.var.xbsl",
@@ -60,13 +61,13 @@
 				{ "include": "#comments" },
 				{ "include": "#literals" },
 				{ "include": "#interpool" },
-				{ "include": "#operators" },				
+				{ "include": "#operators" },
 				{ "include": "#query-keywords" }
 			]
 		},
 		{
 			"name": "meta.preprocessor",
-			"match": "(?:i@\\s*[\\wа-яё]+)"
+			"match": "(?i:@\\s*[\\wа-яё]+)"
 		},
 		{ "include": "#keywords" }
 	],
@@ -79,26 +80,18 @@
 				}
 			]
 		},
-		"query-keywords": {
-			"patterns": [
-				{
-					"name": "keyword.control.less.xbsl",
-					"match": "(?i:\\b(ВЫБРАТЬ|SELECT|ИЗ|FROM|ГДЕ|WHERE|УПОРЯДОЧИТЬ ПО|ORDER BY|ПОМЕСТИТЬ|INTO|ИНДЕКСИРОВАТЬ ПО|INDEX BY|КАК|AS|И|AND|ИЛИ|OR|НЕ|NOT)\\b)"
-				}
-			]
-		},
 		"operators": {
 			"patterns": [
 				{
-					"name": "keyword.operator.lambda.xbsl",
+					"name": "keyword.control.xbsl",
 					"match": "->"
 				},
 				{
 					"name": "keyword.operator.expression.xbsl",
-					"match": "<=|>=|=|<|>|==|!=|\\*|\\+|-|/|%|\\*\\*"
+					"match": "<=|>=|=|<|>|==|!=|\\*|\\+|-|/|%|\\*\\*\\:\\?"
 				},
 				{
-					"name": "keyword.operator.logical.xbsl",
+					"name": "keyword.control.xbsl",
 					"match": "(?<=[^\\wа-яё\\.]|^)(не|not|и|and|или|or)(?=[^\\wа-яё\\.]|$)"
 				}
 			]
@@ -137,14 +130,12 @@
 				},
 				{
 					"name": "constant.language.xbsl",
-					"match": "(?i:(\\b(true|истина|false|ложь)\\b))"
+					"match": "(\\b(Истина|True|Ложь|False|Неопределено|Undefined)\\b)"
 				},
-				{
-					"include": "#built-in-type"
-				}
+				{ "include": "#built-in-type" }
 			]
 		},
-		"built-in-type":{
+		"built-in-type": {
 			"patterns": [
 				{
 					"name": "storage.type.xbsl",
@@ -159,16 +150,28 @@
 		"value-type": {
 			"patterns": [
 				{
-					"name": "entity.name.type.xbsl",
-					"match": "(([\\wа-яё\\.?]+))+"
+					"comment": "Имя типа, первая часть",
+					"begin": "(?<=\\:)\\s*(?:([\\wа-яё\\.\\?]+)\\s*((?>\\<)))",
+					"beginCaptures": {
+						"1": { "name": "entity.name.type.xbsl" },
+						"2": { "name": "keyword.other.operator.xbsl" }
+					},
+					"end": ">(?:\\?)?",
+					"endCaptures": { "0": { "name": "keyword.other.operator.xbsl" } },
+					"patterns": [
+						{
+							"comment": "содержимое, надо вынести наверное",
+							"name": "entity.name.type.xbsl",
+							"begin": "\\b([\\wа-яё\\.\\?]+\\s*)",
+							"end": ">|<|\\|",
+							"patterns": [ { "include": "#operators" } ]
+						}
+					]
 				},
 				{
-					"name": "punctuation.type.diamond.xbsl",
-					"match": "(<|>)"
-				},
-				{
-					"name": "punctuation.type.complex.xbsl",
-					"match": "\\|"
+					"comment": "Имя типа брильянта, включая составное",
+					"match": "(?:(?<=\\||(?<=\\:))\\s*([\\wа-яё\\.\\?]+))+",
+					"captures": { "1": { "name": "entity.name.type.xbsl" } }
 				}
 			]
 		},
@@ -184,6 +187,142 @@
 					"name": "variable.parameter.xbsl",
 					"match": "[\\%\\$][\\wа-яё]+\\b"
 				}
+			]
+		},
+		"query-keywords": {
+			"comment": "Ключевые слова запроса",
+			"patterns": [
+				{
+					"name": "keyword.sql.xbsl",
+					"match": "(?i:\\b(ВЫБРАТЬ|SELECT|ВСТАВИТЬ|INSERT|ИЗМЕНИТЬ|UPDATE|РАЗРЕШЕННЫЕ|ALLOWED|ПЕРВЫЕ|TOP|РАЗЛИЧНЫЕ|DISTINCT)\\b)"
+				},
+				{
+					"name": "keyword.sql.xbsl",
+					"match": "(?i:\\b(ОБРЕЗАТЬ|TRUNCATE|УДАЛИТЬ|DELETE|УНИЧТОЖИТЬ|DROP|ПОМЕСТИТЬ|INTO|ИНДЕКСИРОВАТЬ|INDEX|УСТАНОВИТЬ|SET)\\b)"
+				},
+				{
+					"name": "keyword.sql.xbsl",
+					"match": "(?i:\\b(СОЗДАТЬ\\s+ВРЕМЕННУЮ\\s+ТАБЛИЦУ|CREATE\\s+TEMPORARY\\s+TABLE|СОЗДАТЬ\\s+ИНДЕКС|CREATE\\s+INDEX)\\b)"
+				},
+				{
+					"name": "keyword.sql.xbsl",
+					"match": "(?i:\\b(ИЗ|FROM|ГДЕ|WHERE|СОЕДИНЕНИЕ|JOIN|ЛЕВОЕ|LEFT|ПРАВОЕ|RIGHT|ПОЛНОЕ|FULL|ВНУТРЕННЕЕ|INNER)\\b)"
+				},
+				{
+					"name": "keyword.sql.xbsl",
+					"match": "(?i:\\b(ОБЪЕДИНИТЬ|UNION|ВСЕ|ALL|УПОРЯДОЧИТЬ|ORDER|СГРУППИРОВАТЬ|GROUP|ИМЕЮЩИЕ|HAVING|ИЕРАРХИИ|HIERARCHY)\\b)"
+				},
+				{
+					"name": "keyword.sql.xbsl",
+					"match": "(?i:\\b(ПО|ON|BY|ВОЗР|ASC|УБЫВ|DESC|ДЛЯ|FOR|КАК|AS|ЕСТЬ|IS|В|IN|ВЫРАЗИТЬ|CAST)\\b)"
+				},
+				{
+					"name": "keyword.sql.xbsl",
+					"match": "(?i:\\b(ВЫБОР|CASE|КОГДА|WHEN|ТОГДА|THEN|ИНАЧЕ|ELSE|КОНЕЦ|END)\\b)"
+				},
+				{
+					"name": "keyword.sql.xbsl",
+					"match": "(?i:\\b(НЕ|NOT|ИЛИ|OR|И|AND|ССЫЛКА|REFS|СПЕЦСИМВОЛ|ESCAPE|NULL|ПОДОБНО|LIKE|МЕЖДУ|BETWEEN)\\b)"
+				}
+			]
+		},
+		"query-func": {
+			"comment": "Функции запроса",
+			"patterns": [
+				{
+					"name": "string.query.xbsl",
+					"begin": "(?i:\\b([\\wа-яё]+)\\b(\\())",
+					"beginCaptures": {
+						"1": { "name": "support.function.sql.xbsl" },
+						"2": { "name": "entity.name.function.xbsl" }
+					},
+					"end": "\\)",
+					"endCaptures": { "0": { "name": "entity.name.function.xbsl" } },
+					"patterns": [
+						{ "include": "#comments" },
+						{ "include": "#literals" },
+						{ "include": "#interpool" },
+						{ "include": "#operators" },
+						{ "include": "#query-func" },
+						{ "include": "#query-keywords" }
+					]
+				}
+			]
+		},
+		"query-full": {
+			"comment": "Блок запроса",
+			"patterns": [
+				{
+					"comment": "Первый вариант написания запроса {}",
+					"name": "string.query.xbsl",
+					"begin": "(?i:\\b(Запрос|Query)\\s*(\\{))",
+					"beginCaptures": {
+						"1": { "name": "entity.name.type.xbsl" },
+						"2": { "name": "entity.name.function.xbsl" }
+					},
+					"end": "\\}",
+					"endCaptures": { "0": { "name": "entity.name.function.xbsl" } },
+					"patterns": [
+						{ "include": "#comments" },
+						{ "include": "#literals" },
+						{ "include": "#interpool" },
+						{ "include": "#operators" },
+						{ "include": "#query-func" },
+						{ "include": "#query-keywords" }
+					]
+				},
+				{
+					"comment": "Второй вариант написания запроса новый Запрос()",
+					"name": "string.query.xbsl",
+					"begin": "(?i:\\b(новый|new)\\s+(Запрос|Query)\\s*(\\())",
+					"beginCaptures": {
+						"1": { "name": "keyword.control.xbsl" },
+						"2": { "name": "entity.name.type.xbsl" },
+						"3": { "name": "entity.name.function.xbsl" }
+					},
+					"end": "\\)",
+					"endCaptures": { "0": { "name": "entity.name.function.xbsl" } },
+					"patterns": [
+						{
+							"comment": "Текст запроса строкой",
+							"begin": "\"",
+							"beginCaptures": { "0": { "name": "punctuation.definition.string.begin.bsl" } },
+							"end": "\"",
+							"endCaptures": { "0": { "name": "punctuation.definition.string.end.bsl" } },
+							"patterns": [
+								{ "include": "#comments" },
+								{ "include": "#literals" },
+								{ "include": "#interpool" },
+								{ "include": "#operators" },
+								{ "include": "#query-func" },
+								{ "include": "#query-keywords" }
+							]
+						}
+					]
+				}
+			]
+		},
+		"method-params": {
+			"begin": "\\s*([\\wа-яё]+)",
+			"beginCaptures": { "1": { "name": "variable.parameter.xbsl" } },
+			"end": "(?=[,\\)])",
+			"patterns": [
+				{
+					"begin": "(?<=\\:)([^,\\=$]+)",
+					"beginCaptures": { "1": { "name": "entity.name.type.xbsl" } },
+					"end": "(?=[,\\=$])"
+				},
+				{ "include": "#literals" }
+			]
+		},
+		"variable": {
+			"comment": "Определенние переменной или параметра",
+			"begin": "(?i:([\\wа-яё]+))\\b",
+			"beginCaptures": { "1": { "name": "variable.parameter.method.xbsl" } },
+			"end": "(?:(?=\\,|\\=|\\)|$))",
+			"patterns": [
+				{ "include": "#operators" },
+				{ "include": "#value-type" }
 			]
 		}
 	},
