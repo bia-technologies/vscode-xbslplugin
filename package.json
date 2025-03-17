@@ -2,7 +2,7 @@
   "name": "language-1c-element-xbsl",
   "displayName": "Language 1C Element (xbsl)",
   "description": "Syntax highlighting for 1C:Enterprise Element",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "bia-tech",
   "engines": {
     "vscode": "^1.97.0"
